@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1"
+>
+
+<title>Harbar Driver Check-In</title>
+
+<script
+src="https://unpkg.com/@zxing/browser@0.2.1">
+</script>
+
+
+<style>
+
+body {
+
+  font-family: Arial, sans-serif;
+
+  max-width: 650px;
+
+  margin: auto;
+
+  padding: 20px;
+
+  background: #f5f7fa;
+
+  color: #1f2937;
+
+}
+
+
+.container {
+
+  background: white;
+
+  padding: 20px;
+
+  border-radius: 12px;
+
+  box-shadow:
+    0 2px 10px
+    rgba(0,0,0,.08);
+
+}
+
+
+h1 {
+
+  text-align: center;
+
+  color: #1f4e78;
+
+}
+
+
+video {
+
+  width: 100%;
+
+  max-height: 350px;
+
+  background: black;
+
+  border-radius: 10px;
+
+  margin-top: 10px;
+
+}
+
+
+label {
+
+  display: block;
+
+  font-weight: bold;
+
+  margin-top: 14px;
+
+}
+
+
+input,
+select {
+
+  width: 100%;
+
+  padding: 11px;
+
+  margin-top: 5px;
+
+  box-sizing: border-box;
+
+  border: 1px solid #ccc;
+
+  border-radius: 6px;
+
+}
+
+
+.row {
+
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+
+  gap: 10px;
+
+}
+
+
+button {
+
+  width: 100%;
+
+  padding: 14px;
+
+  border: none;
+
+  border-radius: 7px;
+
+  font-size: 16px;
+
+  font-weight: bold;
+
+  cursor: pointer;
+
+  margin-top: 15px;
+
+}
+
+
+.scan {
+
+  background: #1f4e78;
+
+  color: white;
+
+}
+
+
+.save {
+
+  background: #15803d;
+
+  color: white;
+
+}
+
+
+.stop {
+
+  background: #6b7280;
+
+  color: white;
+
+}
+
+
+#status {
+
+  margin-top: 15px;
+
+  padding: 12px;
+
+  background: #eee;
+
+  border-radius: 6px;
+
+}
+
+
+.success {
+
+  background: #dcfce7 !important;
+
+  color: #166534;
+
+}
+
+
+.error {
+
+  background: #fee2e2 !important;
+
+  color: #991b1b;
+
+}
+
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<div class="container">
+
+
+<h1>
+HARBAR DRIVER CHECK-IN
+</h1>
+
+
+<button
+  type="button"
+  class="scan"
+  onclick="startScanner()"
+>
+
+📷 SCAN DRIVER LICENSE
+
+</button>
+
+
+<video
+  id="video"
+  playsinline
+></video>
+
+
+<button
+  type="button"
+  class="stop"
+  onclick="stopScanner()"
+>
+
+STOP CAMERA
+
+</button>
+
+
+
+<form
+  id="checkinForm"
+  method="POST"
+  target="submitFrame"
+>
+
+
+<label>
+Station Key
+</label>
+
+<input
+  type="password"
+  id="stationKey"
+  name="stationKey"
+  required
+>
+
+
+<div class="row">
+
+
+<div>
+
+<label>
+First Name
+</label>
+
+<input
+  id="firstName"
+  name="firstName"
+  required
+>
+
+</div>
+
+
+<div>
+
+<label>
+Last Name
+</label>
+
+<input
+  id="lastName"
+  name="lastName"
+  required
+>
+
+</div>
+
+
+</div>
+
+
+
+<div class="row">
+
+
+<div>
+
+<label>
+License State
+</label>
+
+<input
+  id="licenseState"
+  name="licenseState"
+  maxlength="2"
+>
+
+</div>
+
+
+<div>
+
+<label>
+License Last 4
+</label>
+
+<input
+  id="licenseLast4"
+  name="licenseLast4"
+  maxlength="4"
+>
+
+</div>
+
+
+</div>
+
+
+
+<label>
+License Expiration
+</label>
+
+<input
+  type="date"
+  id="expiration"
+  name="expiration"
+>
+
+
+
+<label>
+Carrier / Company
+</label>
+
+<input
+  id="carrier"
+  name="carrier"
+>
+
+
+
+<div class="row">
+
+
+<div>
+
+<label>
+Reference Number
+</label>
+
+<input
+  id="referenceNumber"
+  name="referenceNumber"
+  inputmode="numeric"
+  required
+>
+
+</div>
+
+
+<div>
+
+<label>
+Suffix
+</label>
+
+<select
+  id="referenceSuffix"
+  name="referenceSuffix"
+  required
+>
+
+<option value="">
+Select
+</option>
+
+<option value="T">
+T
+</option>
+
+<option value="P">
+P
+</option>
+
+</select>
+
+</div>
+
+
+</div>
+
+
+
+<div class="row">
+
+
+<div>
+
+<label>
+Truck Number
+</label>
+
+<input
+  id="truckNumber"
+  name="truckNumber"
+>
+
+</div>
+
+
+<div>
+
+<label>
+Trailer Number
+</label>
+
+<input
+  id="trailerNumber"
+  name="trailerNumber"
+>
+
+</div>
+
+
+</div>
+
+
+
+<label>
+Notes
+</label>
+
+<input
+  id="notes"
+  name="notes"
+>
+
+
+
+<button
+  class="save"
+  type="submit"
+>
+
+SAVE CHECK-IN
+
+</button>
+
+
+</form>
+
+
+<div id="status">
+Ready.
+</div>
+
+
+<iframe
+  name="submitFrame"
+  id="submitFrame"
+  style="display:none">
+</iframe>
+
+
+</div>
+
+
+
+<script>
+
+
+/***************************************************
+ PON AQUÍ LA URL /exec DE TU APPS SCRIPT
+****************************************************/
+
+const WEB_APP_URL =
+'https://script.google.com/macros/s/AKfycbwY0UysKvi29aJ9RwxueqGe_oWBHYfxtox51dWoi4fhRgelQ2lQp7pXeq5eOIDbv803/exec';
+
+
+
+let reader = null;
+
+let controls = null;
+
+let submitting = false;
+
+
+
+document
+  .getElementById('checkinForm')
+  .action =
+  WEB_APP_URL;
+
+
+
+const savedKey =
+  localStorage.getItem(
+    'harbarStationKey'
+  );
+
+
+if (savedKey) {
+
+  document
+    .getElementById('stationKey')
+    .value =
+    savedKey;
+
+}
+
+
+
+function showStatus(
+  message,
+  type = ''
+) {
+
+  const status =
+    document.getElementById(
+      'status'
+    );
+
+  status.textContent =
+    message;
+
+  status.className =
+    type;
+
+}
+
+
+
+async function startScanner() {
+
+  try {
+
+    stopScanner();
+
+
+    showStatus(
+      'Starting camera...'
+    );
+
+
+    reader =
+      new ZXingBrowser
+        .BrowserPDF417Reader();
+
+
+    controls =
+      await reader
+        .decodeFromVideoDevice(
+
+          undefined,
+
+          document.getElementById(
+            'video'
+          ),
+
+          function(
+            result,
+            error,
+            scannerControls
+          ) {
+
+            if (result) {
+
+              const raw =
+                result.getText();
+
+
+              showStatus(
+                'License scanned. Reading driver information...',
+                'success'
+              );
+
+
+              parseLicense(raw);
+
+
+              scannerControls.stop();
+
+              controls = null;
+
+            }
+
+          }
+
+        );
+
+
+  }
+
+  catch (error) {
+
+    console.error(error);
+
+
+    showStatus(
+
+      'Camera error: ' +
+      error.message,
+
+      'error'
+
+    );
+
+  }
+
+}
+
+
+
+function stopScanner() {
+
+  try {
+
+    if (controls) {
+
+      controls.stop();
+
+      controls = null;
+
+    }
+
+
+    ZXingBrowser
+      .BrowserCodeReader
+      .releaseAllStreams();
+
+  }
+
+  catch (e) {}
+
+}
+
+
+
+function getAamvaField(
+  raw,
+  code
+) {
+
+  let text =
+    raw
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .replace(
+      /[\x1d\x1e\x1f]/g,
+      '\n'
+    );
+
+
+  let expression =
+    new RegExp(
+      '(?:^|\\n)' +
+      code +
+      '([^\\n]*)',
+      'm'
+    );
+
+
+  let match =
+    text.match(expression);
+
+
+  if (match) {
+
+    return match[1].trim();
+
+  }
+
+
+  expression =
+    new RegExp(
+      code +
+      '([\\s\\S]*?)' +
+      '(?=D[A-Z0-9]{2}|Z[A-Z0-9]{2}|$)'
+    );
+
+
+  match =
+    text.match(expression);
+
+
+  return match
+    ? match[1].trim()
+    : '';
+
+}
+
+
+
+function formatDate(
+  value
+) {
+
+  if (!value) {
+    return '';
+  }
+
+
+  const numbers =
+    value.replace(/\D/g, '');
+
+
+  if (numbers.length !== 8) {
+    return '';
+  }
+
+
+  // US AAMVA:
+  // MMDDCCYY
+
+  const mm =
+    numbers.substring(0,2);
+
+  const dd =
+    numbers.substring(2,4);
+
+  const yyyy =
+    numbers.substring(4,8);
+
+
+  return (
+    yyyy +
+    '-' +
+    mm +
+    '-' +
+    dd
+  );
+
+}
+
+
+
+function cleanName(
+  value
+) {
+
+  return String(value || '')
+    .replace(
+      /[^A-Za-zÀ-ÿ' -]/g,
+      ''
+    )
+    .trim();
+
+}
+
+
+
+function parseLicense(
+  raw
+) {
+
+
+  const firstName =
+    getAamvaField(
+      raw,
+      'DAC'
+    ) ||
+
+    getAamvaField(
+      raw,
+      'DCT'
+    );
+
+
+  const lastName =
+    getAamvaField(
+      raw,
+      'DCS'
+    );
+
+
+  const license =
+    getAamvaField(
+      raw,
+      'DAQ'
+    );
+
+
+  const state =
+    getAamvaField(
+      raw,
+      'DAJ'
+    );
+
+
+  const expiration =
+    getAamvaField(
+      raw,
+      'DBA'
+    );
+
+
+  document
+    .getElementById(
+      'firstName'
+    )
+    .value =
+    cleanName(firstName);
+
+
+  document
+    .getElementById(
+      'lastName'
+    )
+    .value =
+    cleanName(lastName);
+
+
+  document
+    .getElementById(
+      'licenseState'
+    )
+    .value =
+    state;
+
+
+  document
+    .getElementById(
+      'licenseLast4'
+    )
+    .value =
+    license
+    ? license.slice(-4)
+    : '';
+
+
+  document
+    .getElementById(
+      'expiration'
+    )
+    .value =
+    formatDate(
+      expiration
+    );
+
+
+  if (
+    firstName ||
+    lastName ||
+    license
+  ) {
+
+    showStatus(
+
+      '✓ License scanned successfully. Verify the information.',
+
+      'success'
+
+    );
+
+  }
+
+  else {
+
+    showStatus(
+
+      'Barcode detected, but driver fields could not be identified.',
+
+      'error'
+
+    );
+
+  }
+
+}
+
+
+
+document
+  .getElementById(
+    'checkinForm'
+  )
+  .addEventListener(
+
+    'submit',
+
+    function() {
+
+
+      const key =
+        document
+        .getElementById(
+          'stationKey'
+        )
+        .value;
+
+
+      localStorage.setItem(
+
+        'harbarStationKey',
+
+        key
+
+      );
+
+
+      submitting =
+        true;
+
+
+      showStatus(
+        'Saving check-in...'
+      );
+
+
+      setTimeout(
+        function() {
+
+          showStatus(
+
+            '✓ Check-in sent to Google Sheets.',
+
+            'success'
+
+          );
+
+        },
+
+        1500
+
+      );
+
+    }
+
+  );
+
+
+</script>
+
+
+</body>
+
+</html>
