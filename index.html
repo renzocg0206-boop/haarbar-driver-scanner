@@ -864,10 +864,100 @@ async function scanCameraFrame() {
 
 
 
-function getAamvaField(
-  raw,
-  code
-) {
+function getAamvaField(raw, code) {
+
+  let text = String(raw || '')
+
+    // Separadores que algunos lectores devuelven como texto
+    .replace(/<LF>/gi, '\n')
+    .replace(/<CR>/gi, '\n')
+    .replace(/<GS>/gi, '\n')
+    .replace(/<RS>/gi, '\n')
+    .replace(/<US>/gi, '\n')
+
+    // Separadores reales
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+    .replace(/[\x1d\x1e\x1f]/g, '\n');
+
+
+  const lines = text.split('\n');
+
+
+  for (let i = 0; i < lines.length; i++) {
+
+    const line = lines[i].trim();
+
+    const position = line.indexOf(code);
+
+
+    if (position !== -1) {
+
+      let value =
+        line.substring(
+          position + code.length
+        );
+
+
+      /*
+       Evita que capture el siguiente campo AAMVA
+       cuando dos códigos vienen pegados.
+      */
+
+      const nextField =
+        value.search(
+          /D[A-Z0-9]{2}|Z[A-Z0-9]{2}/
+        );
+
+
+      if (nextField > 0) {
+
+        value =
+          value.substring(
+            0,
+            nextField
+          );
+
+      }
+
+
+      return value
+        .replace(/<[^>]+>/g, '')
+        .trim();
+
+    }
+
+  }
+
+
+  /*
+   Segundo intento para formatos que vienen
+   completamente concatenados.
+  */
+
+  const expression =
+    new RegExp(
+      code +
+      '([\\s\\S]*?)' +
+      '(?=D[A-Z0-9]{2}|Z[A-Z0-9]{2}|$)'
+    );
+
+
+  const match =
+    text.match(expression);
+
+
+  if (match) {
+
+    return match[1]
+      .replace(/<[^>]+>/g, '')
+      .trim();
+
+  }
+
+
+  return '';
+}
 
   let text =
     String(raw || '')
@@ -1028,19 +1118,24 @@ function formatDate(
 
 
 
-function cleanName(
-  value
-) {
+function cleanName(value) {
 
-  return String(
-    value || ''
-  )
-  .replace(
-    /[^A-Za-zÀ-ÿ' -]/g,
-    ''
-  )
-  .trim();
+  return String(value || '')
 
+    .replace(/<LF>/gi, '')
+    .replace(/<CR>/gi, '')
+    .replace(/<GS>/gi, '')
+    .replace(/<RS>/gi, '')
+    .replace(/<US>/gi, '')
+
+    .replace(
+      /[^A-Za-zÀ-ÿ' -]/g,
+      ''
+    )
+
+    .replace(/\s+/g, ' ')
+
+    .trim();
 }
 
 
