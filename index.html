@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html>
 
 <head>
@@ -13,198 +12,138 @@
 
 <title>Harbar Driver Check-In</title>
 
-<script
-src="https://unpkg.com/@zxing/browser@0.2.1">
-</script>
-
+<script src="https://cdn.jsdelivr.net/npm/zxing-wasm@3.1.4/dist/iife/reader/index.js"></script>
 
 <style>
 
 body {
-
   font-family: Arial, sans-serif;
-
   max-width: 650px;
-
   margin: auto;
-
   padding: 20px;
-
   background: #f5f7fa;
-
   color: #1f2937;
-
 }
-
 
 .container {
-
   background: white;
-
   padding: 20px;
-
   border-radius: 12px;
-
-  box-shadow:
-    0 2px 10px
-    rgba(0,0,0,.08);
-
+  box-shadow: 0 2px 10px rgba(0,0,0,.08);
 }
-
 
 h1 {
-
   text-align: center;
-
   color: #1f4e78;
-
 }
-
 
 video {
-
   width: 100%;
-
   max-height: 350px;
-
   background: black;
-
   border-radius: 10px;
-
   margin-top: 10px;
-
 }
 
+.scan-frame {
+  position: relative;
+}
+
+.scan-guide {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 35%;
+  height: 30%;
+  border: 3px solid rgba(255,255,255,.85);
+  border-radius: 8px;
+  pointer-events: none;
+  box-sizing: border-box;
+}
 
 label {
-
   display: block;
-
   font-weight: bold;
-
   margin-top: 14px;
-
 }
-
 
 input,
 select {
-
   width: 100%;
-
   padding: 11px;
-
   margin-top: 5px;
-
   box-sizing: border-box;
-
   border: 1px solid #ccc;
-
   border-radius: 6px;
-
 }
-
 
 .row {
-
   display: grid;
-
   grid-template-columns: 1fr 1fr;
-
   gap: 10px;
-
 }
-
 
 button {
-
   width: 100%;
-
   padding: 14px;
-
   border: none;
-
   border-radius: 7px;
-
   font-size: 16px;
-
   font-weight: bold;
-
   cursor: pointer;
-
   margin-top: 15px;
-
 }
-
 
 .scan {
-
   background: #1f4e78;
-
   color: white;
-
 }
-
 
 .save {
-
   background: #15803d;
-
   color: white;
-
 }
-
 
 .stop {
-
   background: #6b7280;
-
   color: white;
-
 }
-
 
 #status {
-
   margin-top: 15px;
-
   padding: 12px;
-
   background: #eee;
-
   border-radius: 6px;
-
 }
-
 
 .success {
-
   background: #dcfce7 !important;
-
   color: #166534;
-
 }
-
 
 .error {
-
   background: #fee2e2 !important;
-
   color: #991b1b;
-
 }
 
+.scanning {
+  background: #dbeafe !important;
+  color: #1e3a8a;
+}
+
+.small {
+  font-size: 12px;
+  color: #6b7280;
+  margin-top: 5px;
+}
 
 </style>
 
 </head>
 
-
 <body>
 
-
 <div class="container">
-
 
 <h1>
 HARBAR DRIVER CHECK-IN
@@ -216,16 +155,33 @@ HARBAR DRIVER CHECK-IN
   class="scan"
   onclick="startScanner()"
 >
-
 📷 SCAN DRIVER LICENSE
-
 </button>
 
 
-<video
-  id="video"
-  playsinline
-></video>
+<div class="scan-frame">
+
+  <video
+    id="video"
+    playsinline
+    autoplay
+    muted>
+  </video>
+
+  <div class="scan-guide"></div>
+
+</div>
+
+
+<canvas
+  id="scanCanvas"
+  style="display:none;">
+</canvas>
+
+
+<div class="small">
+Place the PDF417 barcode on the back of the license inside the rectangle.
+</div>
 
 
 <button
@@ -233,11 +189,8 @@ HARBAR DRIVER CHECK-IN
   class="stop"
   onclick="stopScanner()"
 >
-
 STOP CAMERA
-
 </button>
-
 
 
 <form
@@ -260,7 +213,6 @@ Station Key
 
 
 <div class="row">
-
 
 <div>
 
@@ -291,13 +243,10 @@ Last Name
 
 </div>
 
-
 </div>
 
 
-
 <div class="row">
-
 
 <div>
 
@@ -328,9 +277,7 @@ License Last 4
 
 </div>
 
-
 </div>
-
 
 
 <label>
@@ -344,7 +291,6 @@ License Expiration
 >
 
 
-
 <label>
 Carrier / Company
 </label>
@@ -355,9 +301,7 @@ Carrier / Company
 >
 
 
-
 <div class="row">
-
 
 <div>
 
@@ -403,13 +347,10 @@ P
 
 </div>
 
-
 </div>
 
 
-
 <div class="row">
-
 
 <div>
 
@@ -438,9 +379,7 @@ Trailer Number
 
 </div>
 
-
 </div>
-
 
 
 <label>
@@ -453,14 +392,11 @@ Notes
 >
 
 
-
 <button
   class="save"
   type="submit"
 >
-
 SAVE CHECK-IN
-
 </button>
 
 
@@ -475,31 +411,28 @@ Ready.
 <iframe
   name="submitFrame"
   id="submitFrame"
-  style="display:none">
+  style="display:none;">
 </iframe>
 
-
 </div>
-
 
 
 <script>
 
 
 /***************************************************
- PON AQUÍ LA URL /exec DE TU APPS SCRIPT
+ CAMBIA SOLAMENTE ESTA URL
 ****************************************************/
 
 const WEB_APP_URL =
-'https://script.google.com/macros/s/AKfycbwY0UysKvi29aJ9RwxueqGe_oWBHYfxtox51dWoi4fhRgelQ2lQp7pXeq5eOIDbv803/exec';
+'https://script.google.com/macros/s/AKfycbyZmwlwQ709iIn1zgY5mLitRAopUMCvSfO6hUkhniHzYF6KvT-P64GGAZlIfYs0U74/exec';
 
 
 
-let reader = null;
-
-let controls = null;
-
-let submitting = false;
+let cameraStream = null;
+let scanTimer = null;
+let decoderBusy = false;
+let scanAttempts = 0;
 
 
 
@@ -553,58 +486,78 @@ async function startScanner() {
 
     stopScanner();
 
+    scanAttempts = 0;
 
     showStatus(
-      'Starting camera...'
+      'Opening camera...',
+      'scanning'
     );
 
 
-    reader =
-      new ZXingBrowser
-        .BrowserPDF417Reader();
+    if (
+      !navigator.mediaDevices ||
+      !navigator.mediaDevices.getUserMedia
+    ) {
+
+      throw new Error(
+        'Camera is not supported by this browser.'
+      );
+
+    }
 
 
-    controls =
-      await reader
-        .decodeFromVideoDevice(
+    const constraints = {
 
-          undefined,
+      audio: false,
 
-          document.getElementById(
-            'video'
-          ),
+      video: {
 
-          function(
-            result,
-            error,
-            scannerControls
-          ) {
+        facingMode: {
+          ideal: 'environment'
+        },
 
-            if (result) {
+        width: {
+          ideal: 1920
+        },
 
-              const raw =
-                result.getText();
+        height: {
+          ideal: 1080
+        }
 
+      }
 
-              showStatus(
-                'License scanned. Reading driver information...',
-                'success'
-              );
+    };
 
 
-              parseLicense(raw);
+    cameraStream =
+      await navigator.mediaDevices
+        .getUserMedia(constraints);
 
 
-              scannerControls.stop();
+    const video =
+      document.getElementById(
+        'video'
+      );
 
-              controls = null;
 
-            }
+    video.srcObject =
+      cameraStream;
 
-          }
 
-        );
+    await video.play();
 
+
+    showStatus(
+      'Scanning PDF417... Keep the barcode centered and in focus.',
+      'scanning'
+    );
+
+
+    scanTimer =
+      setInterval(
+        scanCameraFrame,
+        500
+      );
 
   }
 
@@ -612,14 +565,10 @@ async function startScanner() {
 
     console.error(error);
 
-
     showStatus(
-
       'Camera error: ' +
-      error.message,
-
+      (error.message || error),
       'error'
-
     );
 
   }
@@ -630,24 +579,286 @@ async function startScanner() {
 
 function stopScanner() {
 
+  if (scanTimer) {
+
+    clearInterval(scanTimer);
+
+    scanTimer = null;
+
+  }
+
+
+  if (cameraStream) {
+
+    cameraStream
+      .getTracks()
+      .forEach(function(track) {
+
+        track.stop();
+
+      });
+
+
+    cameraStream = null;
+
+  }
+
+
+  const video =
+    document.getElementById(
+      'video'
+    );
+
+
+  if (video) {
+
+    video.srcObject = null;
+
+  }
+
+
+  decoderBusy = false;
+
+}
+
+
+
+async function scanCameraFrame() {
+
+  if (decoderBusy) {
+    return;
+  }
+
+
+  const video =
+    document.getElementById(
+      'video'
+    );
+
+
+  if (
+    !video ||
+    video.readyState < 2 ||
+    !video.videoWidth ||
+    !video.videoHeight
+  ) {
+
+    return;
+
+  }
+
+
+  decoderBusy = true;
+
+  scanAttempts++;
+
+
   try {
 
-    if (controls) {
+    const canvas =
+      document.getElementById(
+        'scanCanvas'
+      );
 
-      controls.stop();
 
-      controls = null;
+    const ctx =
+      canvas.getContext(
+        '2d',
+        {
+          willReadFrequently: true
+        }
+      );
+
+
+    const originalWidth =
+      video.videoWidth;
+
+    const originalHeight =
+      video.videoHeight;
+
+
+    /*
+      PDF417 is wide.
+      We crop the center portion of the camera image
+      so the decoder focuses on the barcode area.
+    */
+
+    const cropX =
+      Math.round(
+        originalWidth * 0.05
+      );
+
+    const cropY =
+      Math.round(
+        originalHeight * 0.25
+      );
+
+    const cropWidth =
+      Math.round(
+        originalWidth * 0.90
+      );
+
+    const cropHeight =
+      Math.round(
+        originalHeight * 0.50
+      );
+
+
+    const maximumWidth =
+      1800;
+
+
+    const scale =
+      Math.min(
+        1,
+        maximumWidth /
+        cropWidth
+      );
+
+
+    canvas.width =
+      Math.round(
+        cropWidth * scale
+      );
+
+
+    canvas.height =
+      Math.round(
+        cropHeight * scale
+      );
+
+
+    ctx.drawImage(
+
+      video,
+
+      cropX,
+      cropY,
+      cropWidth,
+      cropHeight,
+
+      0,
+      0,
+      canvas.width,
+      canvas.height
+
+    );
+
+
+    const imageData =
+      ctx.getImageData(
+
+        0,
+        0,
+
+        canvas.width,
+        canvas.height
+
+      );
+
+
+    const results =
+      await ZXingWASM.readBarcodes(
+
+        imageData,
+
+        {
+
+          formats: [
+            'PDF417'
+          ],
+
+          tryHarder: true,
+
+          tryRotate: true,
+
+          tryInvert: true,
+
+          tryDownscale: true,
+
+          tryDenoise: true,
+
+          maxNumberOfSymbols: 1
+
+        }
+
+      );
+
+
+    const result =
+      results.find(
+        function(item) {
+
+          return (
+            item &&
+            item.isValid &&
+            item.text
+          );
+
+        }
+      );
+
+
+    if (result) {
+
+      const raw =
+        result.text;
+
+
+      stopScanner();
+
+
+      showStatus(
+        '✓ License barcode detected. Reading information...',
+        'success'
+      );
+
+
+      parseLicense(raw);
+
+      return;
 
     }
 
 
-    ZXingBrowser
-      .BrowserCodeReader
-      .releaseAllStreams();
+    showStatus(
+
+      'Scanning PDF417... ' +
+      originalWidth +
+      ' × ' +
+      originalHeight +
+      ' | Attempt ' +
+      scanAttempts,
+
+      'scanning'
+
+    );
 
   }
 
-  catch (e) {}
+  catch (error) {
+
+    console.error(
+      'Scanner error:',
+      error
+    );
+
+
+    showStatus(
+
+      'Scanner active, but the barcode has not been decoded yet.',
+
+      'error'
+
+    );
+
+  }
+
+  finally {
+
+    decoderBusy = false;
+
+  }
 
 }
 
@@ -659,7 +870,7 @@ function getAamvaField(
 ) {
 
   let text =
-    raw
+    String(raw || '')
     .replace(/\r\n/g, '\n')
     .replace(/\r/g, '\n')
     .replace(
@@ -678,7 +889,9 @@ function getAamvaField(
 
 
   let match =
-    text.match(expression);
+    text.match(
+      expression
+    );
 
 
   if (match) {
@@ -697,7 +910,9 @@ function getAamvaField(
 
 
   match =
-    text.match(expression);
+    text.match(
+      expression
+    );
 
 
   return match
@@ -718,25 +933,87 @@ function formatDate(
 
 
   const numbers =
-    value.replace(/\D/g, '');
+    String(value)
+      .replace(
+        /\D/g,
+        ''
+      );
 
 
-  if (numbers.length !== 8) {
+  if (
+    numbers.length !== 8
+  ) {
+
     return '';
+
   }
 
 
-  // US AAMVA:
-  // MMDDCCYY
+  let yyyy;
+  let mm;
+  let dd;
 
-  const mm =
-    numbers.substring(0,2);
 
-  const dd =
-    numbers.substring(2,4);
+  const firstFour =
+    Number(
+      numbers.substring(
+        0,
+        4
+      )
+    );
 
-  const yyyy =
-    numbers.substring(4,8);
+
+  /*
+    Some jurisdictions/versions may return YYYYMMDD.
+    Others use MMDDYYYY.
+  */
+
+  if (
+    firstFour >= 1900 &&
+    firstFour <= 2200
+  ) {
+
+    yyyy =
+      numbers.substring(
+        0,
+        4
+      );
+
+    mm =
+      numbers.substring(
+        4,
+        6
+      );
+
+    dd =
+      numbers.substring(
+        6,
+        8
+      );
+
+  }
+
+  else {
+
+    mm =
+      numbers.substring(
+        0,
+        2
+      );
+
+    dd =
+      numbers.substring(
+        2,
+        4
+      );
+
+    yyyy =
+      numbers.substring(
+        4,
+        8
+      );
+
+  }
 
 
   return (
@@ -755,12 +1032,14 @@ function cleanName(
   value
 ) {
 
-  return String(value || '')
-    .replace(
-      /[^A-Za-zÀ-ÿ' -]/g,
-      ''
-    )
-    .trim();
+  return String(
+    value || ''
+  )
+  .replace(
+    /[^A-Za-zÀ-ÿ' -]/g,
+    ''
+  )
+  .trim();
 
 }
 
@@ -816,7 +1095,9 @@ function parseLicense(
       'firstName'
     )
     .value =
-    cleanName(firstName);
+    cleanName(
+      firstName
+    );
 
 
   document
@@ -824,7 +1105,9 @@ function parseLicense(
       'lastName'
     )
     .value =
-    cleanName(lastName);
+    cleanName(
+      lastName
+    );
 
 
   document
@@ -915,16 +1198,14 @@ document
       );
 
 
-      submitting =
-        true;
-
-
       showStatus(
-        'Saving check-in...'
+        'Saving check-in...',
+        'scanning'
       );
 
 
       setTimeout(
+
         function() {
 
           showStatus(
@@ -947,7 +1228,6 @@ document
 
 
 </script>
-
 
 </body>
 
