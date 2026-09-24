@@ -51,149 +51,123 @@ video {
 
 .scan-guide {
   position: absolute;
-
   left: 8%;
   right: 8%;
-
   top: 35%;
-
   height: 30%;
-
   border: 3px solid rgba(255,255,255,.90);
-
   border-radius: 8px;
-
   pointer-events: none;
-
   box-sizing: border-box;
 }
 
 label {
   display: block;
-
   font-weight: bold;
-
   margin-top: 14px;
 }
 
 input,
 select {
-
   width: 100%;
-
   padding: 11px;
-
   margin-top: 5px;
-
   box-sizing: border-box;
-
   border: 1px solid #ccc;
-
   border-radius: 6px;
-
   font-size: 16px;
 }
 
 .row {
-
   display: grid;
-
   grid-template-columns: 1fr 1fr;
-
   gap: 10px;
 }
 
 button {
-
   width: 100%;
-
   padding: 14px;
-
   border: none;
-
   border-radius: 7px;
-
   font-size: 16px;
-
   font-weight: bold;
-
   cursor: pointer;
-
   margin-top: 15px;
 }
 
 .scan {
-
   background: #1f4e78;
-
   color: white;
 }
 
 .save {
-
   background: #15803d;
-
   color: white;
 }
 
 .stop {
-
   background: #6b7280;
-
   color: white;
 }
 
 #status {
-
   margin-top: 15px;
-
   padding: 12px;
-
   background: #eee;
-
   border-radius: 6px;
 }
 
 .success {
-
   background: #dcfce7 !important;
-
   color: #166534;
 }
 
 .error {
-
   background: #fee2e2 !important;
-
   color: #991b1b;
 }
 
 .scanning {
-
   background: #dbeafe !important;
-
   color: #1e3a8a;
 }
 
 .small {
-
   font-size: 12px;
-
   color: #6b7280;
-
   margin-top: 5px;
+}
+
+#successScreen {
+  text-align: center;
+  padding: 45px 15px;
+}
+
+.success-icon {
+  font-size: 65px;
+}
+
+.success-title {
+  color: #15803d;
+  margin-bottom: 10px;
+}
+
+.success-message {
+  font-size: 18px;
+}
+
+.success-instruction {
+  color: #6b7280;
+  font-size: 16px;
 }
 
 </style>
 
 </head>
 
-
 <body>
 
-
 <div class="container">
-
 
 <h1>
 HARBAR DRIVER CHECK-IN
@@ -203,11 +177,10 @@ HARBAR DRIVER CHECK-IN
 <button
   type="button"
   class="scan"
+  id="scanButton"
   onclick="startScanner()"
 >
-
 📷 SCAN DRIVER LICENSE
-
 </button>
 
 
@@ -220,9 +193,7 @@ HARBAR DRIVER CHECK-IN
     muted>
   </video>
 
-  <div
-    class="scan-guide">
-  </div>
+  <div class="scan-guide"></div>
 
 </div>
 
@@ -234,23 +205,24 @@ HARBAR DRIVER CHECK-IN
 
 
 <div class="small">
-
 Place the PDF417 barcode on the back of the license inside the rectangle.
-
 </div>
 
 
 <button
   type="button"
   class="stop"
+  id="stopButton"
   onclick="stopScanner()"
 >
-
 STOP CAMERA
-
 </button>
 
 
+
+<!-- =====================================================
+     CHECK-IN FORM
+===================================================== -->
 
 <form
   id="checkinForm"
@@ -259,6 +231,8 @@ STOP CAMERA
 >
 
 
+<!-- STATION KEY OCULTO -->
+
 <input
   type="hidden"
   id="stationKey"
@@ -266,75 +240,86 @@ STOP CAMERA
   value="HARBAR-2026"
 >
 
-<div class="row">
 
-
-<div>
-
-<label>
-First Name
-</label>
+<!-- ID ÚNICO PARA EVITAR DUPLICADOS -->
 
 <input
-  id="firstName"
-  name="firstName"
-  required
+  type="hidden"
+  id="submissionId"
+  name="submissionId"
 >
 
-</div>
 
 
-<div>
-
-<label>
-Last Name
-</label>
-
-<input
-  id="lastName"
-  name="lastName"
-  required
->
-
-</div>
-
-
-</div>
-
-
+<!-- DRIVER NAME -->
 
 <div class="row">
 
+  <div>
 
-<div>
+    <label>
+    First Name
+    </label>
 
-<label>
-License State
-</label>
+    <input
+      id="firstName"
+      name="firstName"
+      required
+    >
 
-<input
-  id="licenseState"
-  name="licenseState"
-  maxlength="2"
->
+  </div>
+
+
+  <div>
+
+    <label>
+    Last Name
+    </label>
+
+    <input
+      id="lastName"
+      name="lastName"
+      required
+    >
+
+  </div>
 
 </div>
 
 
-<div>
 
-<label>
-License Last 4
-</label>
+<!-- LICENSE -->
 
-<input
-  id="licenseLast4"
-  name="licenseLast4"
-  maxlength="4"
->
+<div class="row">
 
-</div>
+  <div>
 
+    <label>
+    License State
+    </label>
+
+    <input
+      id="licenseState"
+      name="licenseState"
+      maxlength="2"
+    >
+
+  </div>
+
+
+  <div>
+
+    <label>
+    License Last 4
+    </label>
+
+    <input
+      id="licenseLast4"
+      name="licenseLast4"
+      maxlength="4"
+    >
+
+  </div>
 
 </div>
 
@@ -352,6 +337,8 @@ License Expiration
 
 
 
+<!-- CARRIER -->
+
 <label>
 Carrier / Company
 </label>
@@ -359,7 +346,13 @@ Carrier / Company
 <input
   id="carrier"
   name="carrier"
+  required
 >
+
+
+
+<!-- PHONE -->
+
 <label>
 Phone Number
 </label>
@@ -373,6 +366,9 @@ Phone Number
   required
 >
 
+
+
+<!-- APPOINTMENT -->
 
 <div class="row">
 
@@ -410,92 +406,95 @@ Phone Number
 </div>
 
 
-<div class="row">
 
-
-<div>
-
-<label>
-Reference Number
-</label>
-
-<input
-  id="referenceNumber"
-  name="referenceNumber"
-  inputmode="numeric"
-  required
->
-
-</div>
-
-
-<div>
-
-<label>
-Suffix
-</label>
-
-<select
-  id="referenceSuffix"
-  name="referenceSuffix"
-  required
->
-
-<option value="">
-Select
-</option>
-
-<option value="T">
-T
-</option>
-
-<option value="P">
-P
-</option>
-
-</select>
-
-</div>
-
-
-</div>
-
-
+<!-- REFERENCE -->
 
 <div class="row">
 
+  <div>
 
-<div>
+    <label>
+    Reference Number
+    </label>
 
-<label>
-Truck Number
-</label>
+    <input
+      id="referenceNumber"
+      name="referenceNumber"
+      inputmode="numeric"
+      required
+    >
 
-<input
-  id="truckNumber"
-  name="truckNumber"
->
+  </div>
+
+
+  <div>
+
+    <label>
+    Suffix
+    </label>
+
+    <select
+      id="referenceSuffix"
+      name="referenceSuffix"
+      required
+    >
+
+      <option value="">
+      Select
+      </option>
+
+      <option value="T">
+      T
+      </option>
+
+      <option value="P">
+      P
+      </option>
+
+    </select>
+
+  </div>
 
 </div>
 
 
-<div>
 
-<label>
-Trailer Number
-</label>
+<!-- TRUCK -->
 
-<input
-  id="trailerNumber"
-  name="trailerNumber"
->
+<div class="row">
+
+  <div>
+
+    <label>
+    Truck Number
+    </label>
+
+    <input
+      id="truckNumber"
+      name="truckNumber"
+    >
+
+  </div>
+
+
+  <div>
+
+    <label>
+    Trailer Number
+    </label>
+
+    <input
+      id="trailerNumber"
+      name="trailerNumber"
+    >
+
+  </div>
 
 </div>
 
 
-</div>
 
-
+<!-- NOTES -->
 
 <label>
 Notes
@@ -508,13 +507,14 @@ Notes
 
 
 
+<!-- SAVE BUTTON -->
+
 <button
   class="save"
   type="submit"
+  id="saveButton"
 >
-
 SAVE CHECK-IN
-
 </button>
 
 
@@ -522,10 +522,37 @@ SAVE CHECK-IN
 
 
 
+<!-- =====================================================
+     SUCCESS SCREEN
+===================================================== -->
+
+<div
+  id="successScreen"
+  style="display:none;"
+>
+
+  <div class="success-icon">
+  ✅
+  </div>
+
+  <h2 class="success-title">
+  CHECK-IN COMPLETED
+  </h2>
+
+  <p class="success-message">
+  Your information has been submitted successfully.
+  </p>
+
+  <p class="success-instruction">
+  Please wait for warehouse instructions.
+  </p>
+
+</div>
+
+
+
 <div id="status">
-
 Ready.
-
 </div>
 
 
@@ -545,13 +572,18 @@ Ready.
 
 
 /*****************************************************
- CAMBIA SOLAMENTE ESTA URL
+ IMPORTANT:
+ REPLACE WITH YOUR APPS SCRIPT /exec URL
 *****************************************************/
 
 const WEB_APP_URL =
 'https://script.google.com/macros/s/AKfycbwAY2uZp9y0eAzxW57NlwQw-tL0F6Y_5CsdmRqkT1KL4HWvO_kL-G6TaFOn4MMvNZJU/exec';
 
 
+
+/*****************************************************
+ VARIABLES
+*****************************************************/
 
 let cameraStream = null;
 
@@ -561,7 +593,13 @@ let decoderBusy = false;
 
 let scanAttempts = 0;
 
+let submitting = false;
 
+
+
+/*****************************************************
+ CONNECT FORM TO APPS SCRIPT
+*****************************************************/
 
 document
   .getElementById(
@@ -572,7 +610,43 @@ document
 
 
 
+/*****************************************************
+ CREATE UNIQUE SUBMISSION ID
+*****************************************************/
 
+function generateSubmissionId() {
+
+  if (
+    window.crypto &&
+    crypto.randomUUID
+  ) {
+
+    return crypto.randomUUID();
+
+  }
+
+
+  return (
+
+    Date.now() +
+
+    '-' +
+
+    Math.random()
+      .toString(36)
+      .substring(2)
+
+  );
+
+}
+
+
+document
+  .getElementById(
+    'submissionId'
+  )
+  .value =
+  generateSubmissionId();
 
 
 
@@ -699,9 +773,7 @@ async function startScanner() {
 
   catch (error) {
 
-    console.error(
-      error
-    );
+    console.error(error);
 
 
     showStatus(
@@ -847,45 +919,32 @@ async function scanCameraFrame() {
       video.videoHeight;
 
 
-
-    /*
-      Focus on the center of the camera image.
-      PDF417 is normally horizontal and wide.
-    */
-
-
     const cropX =
       Math.round(
-        originalWidth *
-        0.05
+        originalWidth * 0.05
       );
 
 
     const cropY =
       Math.round(
-        originalHeight *
-        0.25
+        originalHeight * 0.25
       );
 
 
     const cropWidth =
       Math.round(
-        originalWidth *
-        0.90
+        originalWidth * 0.90
       );
 
 
     const cropHeight =
       Math.round(
-        originalHeight *
-        0.50
+        originalHeight * 0.50
       );
-
 
 
     const maximumWidth =
       1800;
-
 
 
     const scale =
@@ -897,7 +956,6 @@ async function scanCameraFrame() {
         cropWidth
 
       );
-
 
 
     canvas.width =
@@ -916,7 +974,6 @@ async function scanCameraFrame() {
         scale
 
       );
-
 
 
     ctx.drawImage(
@@ -938,7 +995,6 @@ async function scanCameraFrame() {
     );
 
 
-
     const imageData =
       ctx.getImageData(
 
@@ -949,7 +1005,6 @@ async function scanCameraFrame() {
         canvas.height
 
       );
-
 
 
     const results =
@@ -981,7 +1036,6 @@ async function scanCameraFrame() {
         );
 
 
-
     const result =
       results.find(
 
@@ -1002,18 +1056,11 @@ async function scanCameraFrame() {
       );
 
 
-
     if (result) {
 
 
       const raw =
         result.text;
-
-
-      console.log(
-        'RAW LICENSE DATA:',
-        raw
-      );
 
 
       stopScanner();
@@ -1036,7 +1083,6 @@ async function scanCameraFrame() {
       return;
 
     }
-
 
 
     showStatus(
@@ -1096,15 +1142,6 @@ async function scanCameraFrame() {
 
 /*****************************************************
  NORMALIZE AAMVA DATA
-
- Removes:
- <LF>
- <CR>
- <GS>
- <RS>
- <US>
-
- and real control characters.
 *****************************************************/
 
 function normalizeAamvaText(
@@ -1114,11 +1151,6 @@ function normalizeAamvaText(
   return String(
     raw || ''
   )
-
-
-  /*
-   Literal strings produced by some PDF417 decoders.
-  */
 
   .replace(
     /<LF>/gi,
@@ -1145,11 +1177,6 @@ function normalizeAamvaText(
     '\n'
   )
 
-
-  /*
-   Sometimes encoded literally.
-  */
-
   .replace(
     /\\n/g,
     '\n'
@@ -1160,11 +1187,6 @@ function normalizeAamvaText(
     '\n'
   )
 
-
-  /*
-   Real line separators.
-  */
-
   .replace(
     /\r\n/g,
     '\n'
@@ -1174,11 +1196,6 @@ function normalizeAamvaText(
     /\r/g,
     '\n'
   )
-
-
-  /*
-   ASCII separators.
-  */
 
   .replace(
     /[\x1c\x1d\x1e\x1f]/g,
@@ -1215,12 +1232,6 @@ function getAamvaField(
       '\n'
     );
 
-
-
-  /*
-   FIRST METHOD:
-   Search each line individually.
-  */
 
   for (
     let i = 0;
@@ -1260,11 +1271,6 @@ function getAamvaField(
         );
 
 
-      /*
-       If another AAMVA field follows
-       on the same line, stop there.
-      */
-
       const nextField =
         value.search(
           /D[A-Z0-9]{2}|Z[A-Z0-9]{2}/
@@ -1293,14 +1299,6 @@ function getAamvaField(
   }
 
 
-
-  /*
-   SECOND METHOD:
-   Search the whole barcode if the
-   jurisdiction did not add line breaks.
-  */
-
-
   const expression =
     new RegExp(
 
@@ -1311,7 +1309,6 @@ function getAamvaField(
       '(?=D[A-Z0-9]{2}|Z[A-Z0-9]{2}|$)'
 
     );
-
 
 
   const match =
@@ -1336,7 +1333,7 @@ function getAamvaField(
 
 
 /*****************************************************
- CLEAN AAMVA FIELD
+ CLEAN FIELD
 *****************************************************/
 
 function cleanField(
@@ -1346,7 +1343,6 @@ function cleanField(
   return String(
     value || ''
   )
-
 
   .replace(
     /<LF>/gi,
@@ -1373,23 +1369,15 @@ function cleanField(
     ''
   )
 
-
-  /*
-   Remove any remaining
-   <SOMETHING> markers.
-  */
-
   .replace(
     /<[^>]+>/g,
     ''
   )
 
-
   .replace(
     /[\r\n\t]/g,
     ''
   )
-
 
   .trim();
 
@@ -1398,7 +1386,7 @@ function cleanField(
 
 
 /*****************************************************
- CLEAN DRIVER NAME
+ CLEAN NAME
 *****************************************************/
 
 function cleanName(
@@ -1454,7 +1442,7 @@ function cleanState(
 
 
 /*****************************************************
- CLEAN LICENSE NUMBER
+ CLEAN LICENSE
 *****************************************************/
 
 function cleanLicenseNumber(
@@ -1477,7 +1465,7 @@ function cleanLicenseNumber(
 
 
 /*****************************************************
- FORMAT AAMVA DATE
+ FORMAT DATE
 *****************************************************/
 
 function formatDate(
@@ -1518,7 +1506,6 @@ function formatDate(
   let dd;
 
 
-
   const firstFour =
     Number(
 
@@ -1528,13 +1515,6 @@ function formatDate(
       )
 
     );
-
-
-
-  /*
-   Support YYYYMMDD
-   and MMDDYYYY.
-  */
 
 
   if (
@@ -1591,7 +1571,6 @@ function formatDate(
   }
 
 
-
   const monthNumber =
     Number(
       mm
@@ -1614,7 +1593,6 @@ function formatDate(
     return '';
 
   }
-
 
 
   return (
@@ -1644,24 +1622,6 @@ function parseLicense(
 ) {
 
 
-  /*
-   AAMVA fields:
-
-   DAC = First Name
-
-   DCT = Given Names
-         used by some older versions
-
-   DCS = Last Name
-
-   DAQ = License Number
-
-   DAJ = State
-
-   DBA = Expiration Date
-  */
-
-
   const firstNameRaw =
 
     getAamvaField(
@@ -1677,14 +1637,12 @@ function parseLicense(
     );
 
 
-
   const lastNameRaw =
 
     getAamvaField(
       raw,
       'DCS'
     );
-
 
 
   const licenseRaw =
@@ -1695,7 +1653,6 @@ function parseLicense(
     );
 
 
-
   const stateRaw =
 
     getAamvaField(
@@ -1704,14 +1661,12 @@ function parseLicense(
     );
 
 
-
   const expirationRaw =
 
     getAamvaField(
       raw,
       'DBA'
     );
-
 
 
   const firstName =
@@ -1744,14 +1699,12 @@ function parseLicense(
     );
 
 
-
   document
     .getElementById(
       'firstName'
     )
     .value =
     firstName;
-
 
 
   document
@@ -1762,14 +1715,12 @@ function parseLicense(
     lastName;
 
 
-
   document
     .getElementById(
       'licenseState'
     )
     .value =
     state;
-
 
 
   document
@@ -1791,14 +1742,12 @@ function parseLicense(
     '';
 
 
-
   document
     .getElementById(
       'expiration'
     )
     .value =
     expiration;
-
 
 
   if (
@@ -1836,75 +1785,156 @@ function parseLicense(
 
 
 /*****************************************************
- SAVE CHECK-IN
+ PREVENT MULTIPLE SUBMISSIONS
 *****************************************************/
 
-document
-  .getElementById(
+const checkinForm =
+  document.getElementById(
     'checkinForm'
-  )
-  .addEventListener(
-
-    'submit',
-
-    function() {
-
-
-      const key =
-        document
-        .getElementById(
-          'stationKey'
-        )
-        .value;
-
-
-
-      localStorage.setItem(
-
-        'harbarStationKey',
-
-        key
-
-      );
-
-
-
-      showStatus(
-
-        'Saving check-in...',
-
-        'scanning'
-
-      );
-
-
-
-      setTimeout(
-
-        function() {
-
-
-          showStatus(
-
-            '✓ Check-in sent to Google Sheets.',
-
-            'success'
-
-          );
-
-        },
-
-        1500
-
-      );
-
-    }
-
   );
 
 
-</script>
+const saveButton =
+  document.getElementById(
+    'saveButton'
+  );
 
+
+const submitFrame =
+  document.getElementById(
+    'submitFrame'
+  );
+
+
+
+checkinForm.addEventListener(
+
+  'submit',
+
+  function(event) {
+
+
+    if (submitting) {
+
+      event.preventDefault();
+
+      return false;
+
+    }
+
+
+    submitting =
+      true;
+
+
+    saveButton.disabled =
+      true;
+
+
+    saveButton.textContent =
+      'SENDING CHECK-IN...';
+
+
+    saveButton.style.opacity =
+      '0.6';
+
+
+    saveButton.style.cursor =
+      'not-allowed';
+
+
+    stopScanner();
+
+
+    showStatus(
+
+      'Sending check-in... Please wait.',
+
+      'scanning'
+
+    );
+
+  }
+
+);
+
+
+
+/*****************************************************
+ AFTER FORM SUBMISSION
+*****************************************************/
+
+submitFrame.addEventListener(
+
+  'load',
+
+  function() {
+
+
+    if (!submitting) {
+
+      return;
+
+    }
+
+
+    checkinForm.style.display =
+      'none';
+
+
+    document
+      .getElementById(
+        'scanButton'
+      )
+      .style.display =
+      'none';
+
+
+    document
+      .getElementById(
+        'stopButton'
+      )
+      .style.display =
+      'none';
+
+
+    document
+      .querySelector(
+        '.scan-frame'
+      )
+      .style.display =
+      'none';
+
+
+    document
+      .querySelector(
+        '.small'
+      )
+      .style.display =
+      'none';
+
+
+    document
+      .getElementById(
+        'status'
+      )
+      .style.display =
+      'none';
+
+
+    document
+      .getElementById(
+        'successScreen'
+      )
+      .style.display =
+      'block';
+
+  }
+
+);
+
+
+</script>
 
 </body>
 
